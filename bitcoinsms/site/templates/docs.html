@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}API Documentation - {{ SITE_NAME }}{% endblock %}
+
+{% block body %}
+  <div class="container" id="docs-container">
+    <h1>API Documentation</h1>
+    <h3>Introduction</h3>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <p>The BitcoinSMS API is a very simple RESTful service. It allows any application with an internet connection to send text messages to any cell phone in the United States. The API only has two endpoints, one to create a new SMS message, and another to check the status of a message.</p>
+        <p>To send a message through the API all you need is the message text and the phone number to send it to. You don’t need an account to utilize the API. It doesn’t want your email, address, or credit card information. Welcome to the future.</p>
+        <p>When you create a new text message it is put into a queue. Once the bitcoin payment is received the message is sent. Bitcoin is considered received with zero confirmations as long as the transaction is accepted by the full node as valid.</p>
+        <p>The code that powers this API is open source and can be forked on GitHub. Support and feedback can be directed at <a target="_blank" href="mailto:support@bitcoinsms.io">support@bitcoinsms.io</a>.</p>
+      </div>
+    </div>
+    <h3>Endpoint for new message</h3>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <p class="bg-info">POST /api/sms</p>
+        <p>Creates a new SMS message and returns basic information in JSON format.</p>
+        <p>Two required parameters: <strong>to</strong> and <strong>text</strong>. POST data can be form-urlencoded or JSON <strong>{"to":"##","text":"hi"}</strong>.</p>
+        <p>cURL example:</p>
+        <pre>
+$ SMS_DATA="to=333-555-6666&text=Hello World!"
+$ curl --data "$SMS_DATA" {{ BASE_URL }}/api/sms</pre>
+        <p>On success will return <span class="bg-success">HTTP 201</span> with JSON data:</p>
+        <pre>
+{
+   "status":"WAITING_FOR_PAYMENT",
+   "status_message":"Pay 0.0005 BTC to 1iPHzdYaSgD.....",
+   "payment_address":"1iPHzdYaSgD44edT2FFPNs3UiEhG9UHhCe",
+   "time_created":"2015-10-16T07:13:43.852316Z",
+   "time_payment_recieved":null,
+   "time_sent":null,
+   "cost_in_satoshis":50000,
+   "cost_in_btc":0.0005,
+   "payment_uri":"bitcoin:1iPHzdYaSgD44edT2FFPNs3Ui....."
+}</pre>
+        <p>On error will return <span class="bg-danger">HTTP 400</span>. However this should be rare; The only errors are missing <strong>to</strong> or <strong>text</strong>, if <strong>to</strong> has exceeded 160 characters, or if <strong>to</strong> is not formated validly.</p>
+        <pre>
+{
+   "to":[
+      "Number invalid, suggested format: '333-555-6666'"
+   ]
+}</pre>
+        <p>Any <span class="bg-danger">HTTP 5XX</span> server error will not return JSON.</p>
+      </div>
+    </div>
+    <h3>Endpoint to check message status</h3>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <p class="bg-info">GET /api/sms/[payment_address]</p>
+        <p>Returns the exact same JSON data. Useful to check the status of the message.</p>
+        <p>cURL example:</p>
+        <pre>
+$ curl {{ BASE_URL }}/api/sms/1iPHzdYaSgD44edT2FFPNs3UiEhG9UHhCe</pre>
+        <p>On success will return <span class="bg-success">HTTP 200</span> with JSON data:</p>
+        <pre>
+{
+   "status":"SENT_SUCCESSFULLY",
+   "status_message":"020000008311A79B",
+   "payment_address":"1iPHzdYaSgD44edT2FFPNs3UiEhG9UHhCe",
+   "time_created":"2015-10-16T07:13:43.852316Z",
+   "time_payment_recieved":"2015-10-16T07:14:50.583957Z",
+   "time_sent":"2015-10-16T07:14:51.693821Z",
+   "cost_in_satoshis":50000,
+   "cost_in_btc":0.0005,
+   "payment_uri":"bitcoin:1iPHzdYaSgD44edT2FFPNs3Ui....."
+}</pre>
+        <p>Will return <span class="bg-danger">HTTP 404</span> if message is not found.</p>
+      </div>
+    </div>
+    <h3>Possible status codes</h3>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <p>The JSON data returned always includes <strong>status</strong>. Here are the possible values:</p>
+        <table class="table table-condensed">
+          <tr class="warning">
+            <td>WAITING_FOR_PAYMENT</td>
+            <td>Service is waiting for payment to be sent to <strong>payment_address</strong></td>
+          </tr>
+          <tr class="info">
+            <td>PREPARING_TO_SEND</td>
+            <td>Payment has been received and message is about to be sent</td>
+          </tr>
+          <tr class="success">
+            <td>SENT_SUCCESSFULLY</td>
+            <td>Complete, message has been sent.</td>
+          </tr>
+          <tr class="danger">
+            <td>ERROR_ON_SEND</td>
+            <td>Something went wrong, see <strong>status_message</strong> for details</td>
+          </tr>
+        </table>
+        <p><strong>status_message</strong> is always present and can provide more information.</p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block body %}
+  <div class="container" id="main-desc">
+    Send text messages to any cell phone in the USA, with bitcoin!
+  </div>
+  <div class="container" id="alert-area"></div>
+  <div class="container" id="success-container">
+    <div class="alert alert-success" role="alert">
+      <p><strong>Success!</strong> Your message was delivered.</p><br/>
+      <a href="/" class="btn btn-primary btn-default" type="submit">Send Another</a>
+    </div>
+  </div>
+  <div class="container" id="pay-container">
+    <div class="alert alert-info" role="alert">
+      <div class="glyphicon glyphicon-refresh glyphicon-refresh-animate" aria-hidden="true"></div>
+      <p>
+        Your text message will be delivered when the bitcoin is received.<br />
+        This page will update automatically.
+        If you leave this page the message will still be delivered if payment is received.
+      </p>
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <div id="payment-qr"></div>
+        <div id="payment-amount"><span></span> BTC</div>
+        <div id="payment-address"> </div>
+        <a href="" target="_blank" id="payment-button" class="btn btn-default btn-primary" type="submit">Pay with Bitcoin <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span></a>
+        <a href="/" class="btn btn-default btn-default" type="submit">Cancel</a>
+      </div>
+    </div>
+  </div>
+  <div class="container" id="sender-container">
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <form class="form-horizontal" id="form-submit-sms" method="post">
+          <div class="form-group">
+            <label for="input-to" class="col-sm-4 control-label">Send a message:</label>
+            <div class="col-sm-8">
+              <input type="tel" class="form-control" id="input-to" placeholder="333-555-6666" name="to">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-12">
+              <textarea class="form-control" rows="3" id="input-text" name="text"></textarea>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10 text-right">
+              <span id="counter" class="">160</span><button class="btn btn-primary btn-lg" id="submit-sms-btn">Submit</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div id="disclaimer">
+    <div class="alert alert-warning" role="alert">
+      This service doesn't require an account.<br/>
+      It doesn't want your email, or financial details.<br/>
+      It won't store cookies or track personal details.
+    </div>
+  </div>
+{% endblock %}
+{% block scripts %}
+  <script>
+    $(function(){
+      $("#input-to").focus();
+      function disable_form_submit_sms(){
+        $('#input-to, #input-text, #submit-sms-btn').prop("disabled", true);
+      }
+      function enable_form_submit_sms(){
+        $('#input-to, #input-text, #submit-sms-btn').prop("disabled", false);
+      }
+      function display_error(message){
+        message = $('<div/>').text(message).html();
+        $("#alert-area").html("<div class=\"alert alert-danger\" role=\"alert\">"+message+"</div>");
+        $("#alert-area").slideDown();
+        $("#main-desc").slideUp();
+      }
+      function clear_error(){
+        $("#main-desc").slideUp();
+        $("#alert-area").slideUp(function(){$("#alert-area").empty()});
+      }
+
+      var watch_payment_address = false;
+      function watch_sms_status(){
+        if(!watch_payment_address){
+          return;
+        }
+        $.get("{{ BASE_URL }}/api/sms/"+watch_payment_address, function(r) {
+          if(r.status == "SENT_SUCCESSFULLY"){
+            watch_payment_address = false;
+            $("#pay-container").slideUp();
+            $("#success-container").slideDown();
+          }
+          if(r.status == "ERROR_ON_SEND"){
+            watch_payment_address = false;
+            display_error(
+              "Sorry we encountered an error: "+
+              r.status_message
+            );
+            $("#pay-container").slideUp();
+          }
+        }).always(function() { setTimeout(watch_sms_status, 2000); });
+      }
+
+      function submit_sms(){
+        var message_length = $("#input-text").val().length;
+        var to_length = $("#input-to").val().length;
+        if(message_length == 0){
+          display_error("You must specify the message to send.");
+          return;
+        }else if(message_length > 160){
+          display_error("Message is too long (max 160 characters).");
+          return;
+        }
+        if(to_length == 0){
+          display_error("Number is required.");
+          return;
+        }
+
+        var data = $("#form-submit-sms").serialize();
+        disable_form_submit_sms();
+        $.post("{{ BASE_URL }}/api/sms", data, function(r) {
+          clear_error();
+          $("#payment-address").text(r.payment_address);
+          $("#payment-amount span").text(r.cost_in_btc);
+          $("#payment-button").attr("href", r.payment_uri);
+          $("#payment-qr").qrcode({
+              "render": "div",
+              "size": 150,
+              "color": "#3a3",
+              "text": r.payment_uri
+          });
+          $("#sender-container").slideUp();
+          $("#pay-container").slideDown();
+          watch_payment_address = r.payment_address;
+          watch_sms_status();
+        }, "json")
+        .fail(function(xhr){
+          try{
+            r = JSON.parse(xhr.responseText);
+            display_error(r.to[0]);
+            enable_form_submit_sms();
+          }catch(e){
+            display_error("Sorry we have encountered an unknown error, please try again later.");
+            $("#sender-container").slideUp();
+          }
+        });
+      }
+      $("#input-text").characterCounter({
+        limit:'160',
+        counterSelector:'#counter'
+      });
+      $("#form-submit-sms").submit(function(e){
+        e.preventDefault();
+        submit_sms();
+      });
+    });
+  </script>
+{% endblock %}

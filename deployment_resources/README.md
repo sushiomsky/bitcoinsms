@@ -1,0 +1,1 @@
+The resources in this directory are used in the deployment of BitcoinSMS.io. They may serve great as references but would probably have to be tailored. For example the location we deploy to is /opt/bitcoinsms and that is hardcoded in a lot of places here. If you are curious BitcoinSMS.io is deployed on Debian 8 (Jessie).

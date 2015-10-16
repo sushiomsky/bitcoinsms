@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}FAQ - {{ SITE_NAME }}{% endblock %}
+
+{% block body %}
+  <div class="container" id="faq-container">
+    <h1>Frequently Asked Questions</h1>
+    <br/>
+    <div class="alert alert-warning" role="alert">
+      This service doesn't require an account. It doesn't want your email, or financial details. It won't store cookies or track personal details.
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <div class="item">
+          <div class="question">
+            What is Bitcoin?
+          </div>
+          <div class="answer">
+            Bitcoin is the future. It's a technology that allows for the decentralization and freeing of resources that have traditionally been centralized and controlled by small groups of people. You can start your journey on <a href="https://bitcoin.org">Bitcoin.org</a>.
+          </div>
+        </div>
+        <div class="item">
+          <div class="question">
+            Why are only numbers in the United States supported?
+          </div>
+          <div class="answer">
+            This service was built as a "weekend project". Only supporting the United States was the easiest way. With enough demand it's possible support for other countries may be added, but it's not promised.
+          </div>
+        </div>
+        <div class="item">
+          <div class="question">
+            How many Bitcoin confirmations does the service require?
+          </div>
+          <div class="answer">
+            This service accepts and sends your text message with zero confirmations as long as your transaction is accepted by it's full node as valid.
+          </div>
+        </div>
+        <div class="item">
+          <div class="question">
+            How long does it take to send my message?
+          </div>
+          <div class="answer">
+            Usually once you send the payment from your bitcoin wallet it only takes a few seconds.
+          </div>
+        </div>
+        <div class="item">
+          <div class="question">
+            Can I prepay for messages to avoid paying a Bitcoin transaction fee for every message?
+          </div>
+          <div class="answer">
+            This service doesn't want to store bitcoin for anyone. If you are using the API you could create multiple messages and pay for them all with a single transaction to save on fees.
+          </div>
+        </div>
+        <div class="item">
+          <div class="question">
+            What number are my messages sent from?
+          </div>
+          <div class="answer">
+            The service maintains a pool of numbers that sends out the text messages. The from number will not always be the same. It is not possible to choose what number your message will be from.
+          </div>
+        </div>
+        <div class="item">
+          <div class="question">
+            Can messages be replied to?
+          </div>
+          <div class="answer">
+            Messages cannot be replied to at this time. In the future a feature may be added to receive incoming messages as well.
+          </div>
+        </div>
+        <div class="item">
+          <div class="question">
+            Is there a limit on volume?
+          </div>
+          <div class="answer">
+            If you are going to send more than 100 messages a day please contact us as a courtesy.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
