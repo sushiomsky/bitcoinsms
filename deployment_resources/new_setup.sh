@@ -18,6 +18,7 @@ python3 setup.py install
 
 cd /opt
 git clone https://github.com/justinguy/bitcoinsms.git
+rm /opt/bitcoinsms/deployment_resources/00*
 cp /opt/bitcoinsms/deployment_resources/001-bitcoinsms.conf /etc/apache2/sites-enabled/
 ## PUT SSL CERTS IN /opt/ssl/
 
