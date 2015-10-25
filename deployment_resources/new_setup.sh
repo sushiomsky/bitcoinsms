@@ -18,6 +18,7 @@ python3 setup.py install
 
 cd /opt
 git clone https://github.com/justinguy/bitcoinsms.git
+rm /etc/apache2/sites-enabled/00*
 cp /opt/bitcoinsms/deployment_resources/001-bitcoinsms.conf /etc/apache2/sites-enabled/
 ## PUT SSL CERTS IN /opt/ssl/
 
@@ -42,7 +43,4 @@ supervisord -c /opt/bitcoinsms/deployment_resources/supervisord.conf
 iptables-restore < /opt/bitcoinsms/deployment_resources/iptables.up.rules
 ip6tables-restore < /opt/bitcoinsms/deployment_resources/ip6tables.up.rules
 
-nano /etc/network/interfaces
-  # ADD TO eth0:
-  #   post-up iptables-restore < /opt/bitcoinsms/deployment_resources/iptables.up.rules
-  #   post-up ip6tables-restore < /opt/bitcoinsms/deployment_resources/ip6tables.up.rules
+apt-get install -y iptables-persistent
